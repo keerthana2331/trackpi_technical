@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:trackpi_technical/bloc/task_filter_bloc.dart';
 // Ensure the import is from task_state.dart
-import 'package:trackpi_technical/bloc/task_state.dart'; // Correct import
 
 // Event classes remain the same...
 

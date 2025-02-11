@@ -83,6 +83,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       try {
         _taskBloc.add(DeleteTask(widget.task!.id!));
         Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task deleted successfully')));
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -111,8 +112,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
       if (widget.task == null) {
         _taskBloc.add(AddTask(task));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task added successfully')));
       } else {
         _taskBloc.add(EditTask(task));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task updated successfully')));
       }
 
       Navigator.pop(context, true);

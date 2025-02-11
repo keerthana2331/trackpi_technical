@@ -1,12 +1,9 @@
-// task_list_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trackpi_technical/task.dart';
 import 'package:trackpi_technical/task_bloc.dart';
 import 'package:trackpi_technical/task_event.dart';
 import 'package:trackpi_technical/task_state.dart';
-
 import 'package:trackpi_technical/taskpage.dart';  // Import the AddEditTaskPage
 
 class TaskListPage extends StatelessWidget {
@@ -106,51 +103,57 @@ class TaskListPage extends StatelessWidget {
   }
 
   Widget _buildTaskList(BuildContext context, List<Task> tasks) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        final task = tasks[index];
-        return Card(
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: task.isCompleted ? Colors.green : Colors.red,
-              child: Text(task.title[0].toUpperCase()),
-            ),
-            title: Text(task.title),
-            subtitle: Text(task.description ?? 'No Description'),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _navigateToAddEditPage(context, context.read<TaskBloc>(), task: task);
-                } else if (value == 'delete') {
-                  _confirmDelete(context, context.read<TaskBloc>(), task.id!, index);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Edit'),
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red),
-                    title: Text('Delete', style: TextStyle(color: Colors.red)),
-                  ),
-                ),
-              ],
-            ),
+  return ListView.builder(
+    padding: const EdgeInsets.all(8),
+    itemCount: tasks.length,
+    itemBuilder: (context, index) {
+      final task = tasks[index];
+      
+      // Limit the description to a certain length, e.g., 50 characters
+      String shortDescription = task.description != null && task.description!.length > 50
+          ? '${task.description!.substring(0, 50)}...' // Truncate and add "..."
+          : task.description ?? 'No Description';
+
+      return Card(
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: task.isCompleted ? Colors.green : Colors.red,
+            child: Text(task.title[0].toUpperCase()),
           ),
-        );
-      },
-    );
-  }
+          title: Text(task.title),
+          subtitle: Text(shortDescription), // Use the shortened description
+          trailing: PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') {
+                _navigateToAddEditPage(context, context.read<TaskBloc>(), task: task);
+              } else if (value == 'delete') {
+                _confirmDelete(context, context.read<TaskBloc>(), task.id!, index);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: ListTile(
+                  leading: Icon(Icons.edit),
+                  title: Text('Edit'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _navigateToAddEditPage(BuildContext context, TaskBloc taskBloc, {Task? task}) async {
     final result = await Navigator.push(
@@ -189,6 +192,34 @@ class TaskListPage extends StatelessWidget {
 
     if (confirm == true) {
       taskBloc.add(DeleteTask(taskId));
+    }
+  }
+
+  // Add a method to show a dialog box when the user types a long message
+  void _showLongMessageDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Long Message"),
+          content: Text("Your message is too long: $message"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to monitor the length of the description being typed
+  void _handleTyping(BuildContext context, String input) {
+    if (input.length > 100) { // Threshold of 100 characters
+      _showLongMessageDialog(context, input);
     }
   }
 }
